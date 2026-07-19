@@ -86,3 +86,7 @@ Here is an example of how an error could look like, if an invalid value was adde
   at HS2_SexRobotController.FileHandler.readPositionsFromFile () [0x0007c] in <ca2677a8d684461c82753f125094d4f9>:0
   at HS2_SexRobotController.SerialPortConnection.CheckButtonAndSerialConnState () [0x0001a] in <ca2677a8d684461c82753f125094d4f9>:0
 ```
+
+For more info, check out the discussion thread on EroScripts:
+https://discuss.eroscripts.com/t/illusion-honey-select-2-and-koikatsu-sunshine-sr6-bepinex-plugin/315180
+
