@@ -22,6 +22,10 @@ The male's penis in a given HScene is always aligned with the L0 (X) Up/Down axi
 
 The T-Code format and open source sex robots (OSR2, OSR2+, SR6) were all created/developed by TempestVR. You can find the full/free open sourced OSR2 here: https://www.patreon.com/posts/osr2-1-year-47041804.
 
+**EroScripts**
+For more info, check out the discussion thread on EroScripts: 
+https://discuss.eroscripts.com/t/illusion-honey-select-2-and-koikatsu-sunshine-sr6-bepinex-plugin/315180.
+
 ## KKS_SexRobotController v2.0
 Access the BepinEx Plugin Menu by pressing `F1`and clicking the `Plugin Settings` button. 
 
