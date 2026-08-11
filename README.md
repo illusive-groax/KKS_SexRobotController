@@ -112,7 +112,7 @@ Due to the changes made between the v1.9 and v2.0 I've decided to keep the expla
 ![plugin](screenshots/bepinEx_menu_v1.9.png)
 To get the names of animations that the Plugin doesn't include, you need to enable the option  `BepInEx Debug: Print position (console)`. In KKS, an additional idle animation name will be printed: `立ち愛撫` (this is only printed when starting the H-Scene and can be ignored).
 
-**Settings Menu (appears after H-Scene has started)*
+**Settings Menu (appears after H-Scene has started)**
 
 ![plugin](screenshots/kks_MenuButtons.png)
 The following options allows for connecting or disconnecting the robot. It also includes a button for enabling or disabling the `Speed limiter` (switching between which speed multiplier should be used for `L0`).
