@@ -111,6 +111,18 @@ namespace KKS_SexRobotController.Plugin
                             && currAnimName != StringConstants.KKS_STARTING_ANIMATION_NAME_TO_IGNORE)
                             CheckAnimationName(_hFlags.nowAnimationInfo.nameAnimation);
                         _robotMovement.AnimationName = currAnimName;
+
+                        // check in what way the animation should be tracked
+                        // (if insertion/penetration, calculate L0 based on the Penis bones. If e.g. handjob, footjob, etc., then calculate the L0 based on the female target)
+                        BoneAnimationDefiner.animationFemaleTargetDictionary.TryGetValue(_robotMovement.AnimationName, out BoneAnimationDefiner.FemaleTargetType currentFemaleTargetType);
+                        _robotMovement.AnimationIsInsertion = currentFemaleTargetType switch
+                        {
+                            BoneAnimationDefiner.FemaleTargetType.VAGINAL
+                            or BoneAnimationDefiner.FemaleTargetType.VAGINALSWAP or BoneAnimationDefiner.FemaleTargetType.ANAL
+                            => true,
+                            _ => false,
+                        };
+
                     }
 
                     // in VR, the _robotMovement.Player doesn't get set
