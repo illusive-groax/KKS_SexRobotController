@@ -17,35 +17,21 @@
 
   <ItemGroup>
     <!-- BepinEx -->
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="BepInEx.BaseLib" version="5.*" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
-    <PackageReference Include="HarmonyX" version="2.*" />
+    <PackageReference Include="BepInEx.Core" Version=" 5.4.21" />
+    <PackageReference Include="BepInEx.BaseLib" version=" 5.4.21" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+    <PackageReference Include="HarmonyX" version="2.16.1" />
     <!-- Unity -->
     <PackageReference Include="UnityEngine.Modules" Version="6000.4.8" IncludeAssets="compile" />
     <PackageReference Include="Microsoft.Unity.Analyzers" version="1.*" developmentDependency="true" />
     <PackageReference Include="UnityEngine.Core" version="2018.1.0" />
     <PackageReference Include="UnityEngine.UI" version="2018.1.0" />
     <!-- IllusionLibs / KKS -->
-    <PackageReference Include="IllusionLibs.BepInEx" version="5.*" />
+    <PackageReference Include="IllusionLibs.BepInEx" version="5.4.22" />
     <PackageReference Include="IllusionLibs.BepInEx.Harmony" version="2.9.0" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp" version="2021.9.17" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass" version="2021.9.17" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UniRx" version="2021.9.17" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UniTask" version="2021.9.17" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Unity.TextMeshPro" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.ImageConversionModule" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.IMGUIModule" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.InputLegacyModule" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UI" version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UIModule" version="2019.4.9" />
-    <PackageReference Include="IllusionModdingAPI.KKSAPI" version="1.46.*" developmentDependency="true" />
-	<PackageReference Include="ExtensibleSaveFormat.KoikatsuSunshine" version="21.1.2" developmentDependency="true">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
+    <PackageReference Include="IllusionModdingAPI.KKSAPI" version="1.46.1" developmentDependency="true" />
+	<PackageReference Include="IllusionLibs.KoikatsuSunshine.AllPackages" Version="2021.9.17" />
 	<!-- VS Dependency -->
 	<PackageReference Include="NuGet.CommandLine" version="7.*" developmentDependency="true" />
   </ItemGroup>

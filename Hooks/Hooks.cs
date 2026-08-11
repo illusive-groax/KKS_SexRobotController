@@ -1,7 +1,7 @@
 ﻿using KKAPI.Studio;
-using System;
+using KKS_SexRobotController.Plugin;
 
-namespace KKS_SexRobotController
+namespace KKS_SexRobotController.Hooks
 {
     internal static partial class Hooks
     {
@@ -14,13 +14,14 @@ namespace KKS_SexRobotController
             HarmonyLib.Harmony.CreateAndPatchAll(typeof(HSceneTriggers));
         }
 
-        private static KKS_SexRobotController GetController()
+
+        private static KKS_SexRobotControllerPlugin GetController()
         {
             // has apparently been tagged as obsolete in latest version
             // using the suggested method (FindAnyObjectByType) throws a "MissingMethodException"
             // therefore, suppress warning and use the functional one
 #pragma warning disable CS0618 // Type or member is obsolete
-            return UnityEngine.Object.FindObjectOfType<KKS_SexRobotController>();
+            return UnityEngine.Object.FindObjectOfType<KKS_SexRobotControllerPlugin>();
 #pragma warning restore CS0618 // Type or member is obsolete
             /*
             KKS_SexRobotController srcObj;

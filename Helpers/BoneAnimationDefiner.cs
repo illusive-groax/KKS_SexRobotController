@@ -1,24 +1,74 @@
 ﻿using System.Collections.Generic;
 
-namespace KKS_SexRobotController
+namespace KKS_SexRobotController.Helpers
 {
     internal sealed class BoneAnimationDefiner
     {
         internal enum LoopSpeed
         {
+            /** Idle states **/
+            IDLE_START,
             IDLE,
+            PULL_OUT,
+            DROP,
+            // Oral
+            ORAL_IDLE,
+            ORAL_IDLE_IN,
+            IDLE_AFTER_CLIMAXING_ORAL,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN1,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN2,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN3,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT1,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT2,
+            IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT3,
+            // Service
+            IDLE_AFTER_CLIMAXING_OUTSIDE,
+            // Insert
             INSERT_IDLE,
-            SLOW,
-            MEDIUM,
-            FAST,
-            ANAL_SLOW,
-            ANAL_MEDIUM,
-            ANAL_FAST,
+            IDLE_AFTER_CLIMAXING_VAGINAL,
+            // Anal
+            ANAL_INSERT_IDLE,
+            IDLE_AFTER_CLIMAXING_ANAL,
+            /** Weak Loop **/
+            INSERT,
+            WEAK,
+            ANAL_WEAK,
+            /** Strong Loop **/
+            STRONG,
+            ANAL_STRONG,
+            /** Orgasm Loop **/
             ORGASM,
-            ABOUT_TO_CUM_INSIDE,
-            CUMMING_INSIDE,
-            AFTER_CUMMING_INSIDE,
-            IDLE_AFTER_CUMMING_INSIDE
+            ANAL_ORGASM,
+            /** CLIMAX: Male only **/
+            // outside
+            MALE_ABOUT_TO_CLIMAX_OUTSIDE,
+            MALE_CLIMAXING_OUTSIDE,
+            // oral
+            MALE_ABOUT_TO_CLIMAX_ORAL,
+            MALE_CLIMAXING_ORAL,
+            // vaginal
+            MALE_ABOUT_TO_CLIMAX_VAGINAL,
+            MALE_CLIMAXING_VAGINAL,
+            MALE_AFTER_CLIMAXING_VAGINAL,
+            // anal
+            MALE_ABOUT_TO_CLIMAX_ANAL,
+            MALE_CLIMAXING_ANAL,
+            MALE_AFTER_CLIMAXING_ANAL,
+            /** CLIMAX: Both **/
+            // vaginal
+            BOTH_ABOUT_TO_CLIMAX_VAGINAL_WEAK,
+            BOTH_CLIMAXING_VAGINAL_WEAK,
+            BOTH_AFTER_CLIMAXING_VAGINAL_WEAK,
+            BOTH_ABOUT_TO_CLIMAX_VAGINAL_STRONG,
+            BOTH_CLIMAXING_VAGINAL_STRONG,
+            BOTH_AFTER_CLIMAXING_VAGINAL_STRONG,
+            // anal
+            BOTH_ABOUT_TO_CLIMAX_ANAL_WEAK,
+            BOTH_CLIMAXING_ANAL_WEAK,
+            BOTH_AFTER_CLIMAXING_ANAL_WEAK,
+            BOTH_ABOUT_TO_CLIMAX_ANAL_STRONG,
+            BOTH_CLIMAXING_ANAL_STRONG,
+            BOTH_AFTER_CLIMAXING_ANAL_STRONG,
         }
 
         internal enum BodyBone
@@ -112,24 +162,112 @@ namespace KKS_SexRobotController
             RIGHTHAND
         }
 
+        internal static readonly List<string> IdleStates = [
+            "",
+            "Idle",
+            "Pull",
+            "Drop",
+            "Oral_Idle",
+            "Oral_Idle_IN",
+            "InsertIdle",
+            "A_InsertIdle",
+            "A_IN_A",
+            "IN_A",
+            "Drop",
+            "Drink_IN",
+            "OUT_A",
+            "Drink",
+            "Drink_A",
+            "Vomit",
+            "Vomit_IN",
+            "Vomit_A",
+        ];
+
+        internal static readonly List<string> ClimaxStates = [
+            "M_OUT_Start",
+            "M_OUT_Loop",
+            "IN_Start",
+            "IN_Loop",
+            "M_IN_Start",
+            "M_IN_Loop",
+            "M_IN_A",
+            "WS_IN_Start",
+            "WS_IN_Loop",
+            "WS_IN_A",
+            "SS_IN_Start",
+            "SS_IN_Loop",
+            "SS_IN_A",
+            "A_M_IN_Start",
+            "A_M_IN_Loop",
+            "A_M_IN_A",
+            "A_WS_IN_Start",
+            "A_WS_IN_Loop",
+            "A_WS_IN_A",
+            "A_SS_IN_Start",
+            "A_SS_IN_Loop",
+            "A_SS_IN_A",
+            ];
+
         // retrieved via HFlag.nowAnimStateName
-        internal static readonly Dictionary<LoopSpeed, string> loopSpeedDict = new Dictionary<LoopSpeed, string> {
+        internal static readonly Dictionary<LoopSpeed, string> loopSpeedDict = new()
+        {
+            // idle
+            {LoopSpeed.IDLE_START, ""},
             {LoopSpeed.IDLE, "Idle"},
+            {LoopSpeed.PULL_OUT, "Pull" },
+            {LoopSpeed.DROP, "Drop"},
+            {LoopSpeed.ORAL_IDLE, "Oral_Idle"},
+            {LoopSpeed.ORAL_IDLE_IN, "Oral_Idle_IN"},
             {LoopSpeed.INSERT_IDLE, "InsertIdle"},
-            {LoopSpeed.SLOW, "WLoop"},
-            {LoopSpeed.MEDIUM, "SLoop"},
-            {LoopSpeed.FAST, "OLoop"},
-            {LoopSpeed.ANAL_SLOW, "A_WLoop"},
-            {LoopSpeed.ANAL_MEDIUM, "A_SLoop"},
-            {LoopSpeed.ANAL_FAST, "A_OLoop"},
-            //{LoopSpeed.ORGASM, "xxx"},
-            {LoopSpeed.ABOUT_TO_CUM_INSIDE, "WS_IN_Start"},
-            {LoopSpeed.CUMMING_INSIDE, "WS_IN_A"},
-            {LoopSpeed.AFTER_CUMMING_INSIDE, "SS_IN_A"},
-            {LoopSpeed.IDLE_AFTER_CUMMING_INSIDE, "IN_A"},
+            {LoopSpeed.ANAL_INSERT_IDLE, "A_InsertIdle"},
+            // active loop
+            {LoopSpeed.INSERT, "Insert"},
+            {LoopSpeed.WEAK, "WLoop"},
+            {LoopSpeed.ORGASM, "SLoop"},
+            {LoopSpeed.STRONG, "OLoop"},
+            // active loop: anal
+            {LoopSpeed.ANAL_WEAK, "A_WLoop"},
+            {LoopSpeed.ANAL_ORGASM, "A_SLoop"},
+            {LoopSpeed.ANAL_STRONG, "A_OLoop"},
+            // outside climax states
+            {LoopSpeed.MALE_ABOUT_TO_CLIMAX_OUTSIDE, "M_OUT_Start"},
+            {LoopSpeed.MALE_CLIMAXING_OUTSIDE, "M_OUT_Loop"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_OUTSIDE, "OUT_A"},
+            // oral climax states
+            {LoopSpeed.MALE_ABOUT_TO_CLIMAX_ORAL, "IN_Start"},
+            {LoopSpeed.MALE_CLIMAXING_ORAL, "IN_Loop"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN1, "Drink_IN"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN2, "Drink"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN3, "Drink_A"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT1, "Vomit"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT2, "Vomit_IN"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT3, "Vomit_A"},
+            // insertion climax states
+            {LoopSpeed.MALE_ABOUT_TO_CLIMAX_VAGINAL, "M_IN_Start"},
+            {LoopSpeed.MALE_CLIMAXING_VAGINAL, "M_IN_Loop"},
+            {LoopSpeed.MALE_AFTER_CLIMAXING_VAGINAL, "M_IN_A"},
+            {LoopSpeed.BOTH_ABOUT_TO_CLIMAX_VAGINAL_WEAK, "WS_IN_Start"},
+            {LoopSpeed.BOTH_CLIMAXING_VAGINAL_WEAK, "WS_IN_Loop"},
+            {LoopSpeed.BOTH_AFTER_CLIMAXING_VAGINAL_WEAK, "WS_IN_A"},
+            {LoopSpeed.BOTH_ABOUT_TO_CLIMAX_VAGINAL_STRONG, "SS_IN_Start"},
+            {LoopSpeed.BOTH_CLIMAXING_VAGINAL_STRONG, "SS_IN_Loop"},
+            {LoopSpeed.BOTH_AFTER_CLIMAXING_VAGINAL_STRONG, "SS_IN_A"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_VAGINAL, "IN_A"},
+            // anal climax states
+            {LoopSpeed.MALE_ABOUT_TO_CLIMAX_ANAL, "A_M_IN_Start"},
+            {LoopSpeed.MALE_CLIMAXING_ANAL, "A_M_IN_Loop"},
+            {LoopSpeed.MALE_AFTER_CLIMAXING_ANAL, "A_M_IN_A"},
+            {LoopSpeed.BOTH_ABOUT_TO_CLIMAX_ANAL_WEAK, "A_WS_IN_Start"},
+            {LoopSpeed.BOTH_CLIMAXING_ANAL_WEAK, "A_WS_IN_Loop"},
+            {LoopSpeed.BOTH_AFTER_CLIMAXING_ANAL_WEAK, "A_WS_IN_A"},
+            {LoopSpeed.BOTH_ABOUT_TO_CLIMAX_ANAL_STRONG, "A_SS_IN_Start"},
+            {LoopSpeed.BOTH_CLIMAXING_ANAL_STRONG, "A_SS_IN_Loop"},
+            {LoopSpeed.BOTH_AFTER_CLIMAXING_ANAL_STRONG, "A_SS_IN_A"},
+            {LoopSpeed.IDLE_AFTER_CLIMAXING_ANAL, "A_IN_A"},
         };
 
-        internal static readonly Dictionary<BodyBone, string> bodyBoneDictionary = new Dictionary<BodyBone, string> {
+        internal static readonly Dictionary<BodyBone, string> bodyBoneDictionary = new()
+        {
             {BodyBone.FEMALE, "k_f_tamaL_00"},
             {BodyBone.FEMALE_HEAD, "cf_j_head"},
             {BodyBone.FEMALE_THIGHTL, "cf_j_thigh00_L"},
@@ -191,9 +329,9 @@ namespace KKS_SexRobotController
             {BodyBone.BALLS_R, "cm_J_dan_f_R"}
         };
 
-        internal static Dictionary<string, FemaleTargetType> animationFemaleTargetDictionary = new Dictionary<string, FemaleTargetType>
+        internal static Dictionary<string, FemaleTargetType> animationFemaleTargetDictionary = new()
         {
-            // Schema: {ANIMATION NAME, FEMALE TARGET(S) TO USE IN REGARD TO MAPPING TO THE MALE'S PENIS TARGET}
+            // Schema: " + ANIMATION NAME, FEMALE TARGET(S) TO USE IN REGARD TO MAPPING TO THE MALE'S PENIS TARGET}
 
             // Koikatsu Service HScene Category
             //handjob
@@ -580,7 +718,7 @@ namespace KKS_SexRobotController
             {"背面座位クンニ入れ替え", FemaleTargetType.VAGINALSWAP}
         };
 
-        internal static readonly Dictionary<string, MaleTargetType> animationMaleTargetDictionary = new Dictionary<string, MaleTargetType>
+        internal static readonly Dictionary<string, MaleTargetType> animationMaleTargetDictionary = new()
         {
             //male hand (masturbation) - not implemented
             {"Standing Cunni & Masturbation", MaleTargetType.RIGHTHAND}
