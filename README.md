@@ -2,6 +2,7 @@
 ## General information
 
 **How to install the Plugin?**
+
 Go to the directory where your game is installed: `<GameDir>\BepinEx\plugins` and create a new folder called `KKS_SexRobotController`. Add the `KKS_SexRobotController.dll` to this folder.
 
 ### Disclosure
@@ -94,7 +95,8 @@ The error can be found in the BepInEx Log (found in `<GameDir>\BepInEx`) for err
 #### Writing animations to file
 This option writes animation names, which isn't present in the Plugin to a separate file (`SRC_UnknownAnimations.txt`). Although most, if not all, available animations should be present in the Plugin, the games I have uses mixed languages for the animation names (in Honey Select 2, all animations are in English. In KKS, its mixed between English and Japanese). Therefore, to make it easier for those with a non-English version to add those animations which are missing, this option was included.
 
-**Note:** The animation name doesn't contain any position info and is not written to the file which can be read by the plugin. The animation(s) needs to be added manually to the the file `SexRobotController.txt`.
+**Note:** 
+The animation name doesn't contain any position info and is not written to the file which can be read by the plugin. The animation(s) needs to be added manually to the the file `SexRobotController.txt`.
 
 ### Sex Robot (L0) Section
 These controls the Stroke movement (L0). The multipliers extends the potential movement length to make animations with shorter movements "feel" longer. As the section names implies, the `Service` is used for all service animations and insertion for vaginal and anal. The sex animations are divided into three main loop types: Weak, Strong, Orgasm. Additionally, there's Idle (meaning no sex animation is playing) and Climax (the actual orgasm). These slider allows you to increase or decrease the strenght of the movement along the L0-Axis based on the current stage/state the animation is at.
@@ -106,14 +108,17 @@ These values, as the name implies, sets the minimum and maximum value for the gi
 Due to the changes made between the v1.9 and v2.0 I've decided to keep the explanation along with the screenshot for this plugin version. This section only details that which is no longer present in v2.0.
 
 **BepinEx Plugin Menu**
+
 ![plugin](screenshots/bepinEx_menu_v1.9.png)
 To get the names of animations that the Plugin doesn't include, you need to enable the option  `BepInEx Debug: Print position (console)`. In KKS, an additional idle animation name will be printed: `立ち愛撫` (this is only printed when starting the H-Scene and can be ignored).
 
-**Settings Menu (appears after H-Scene has started)**
+**Settings Menu (appears after H-Scene has started)*
+
 ![plugin](screenshots/kks_MenuButtons.png)
 The following options allows for connecting or disconnecting the robot. It also includes a button for enabling or disabling the `Speed limiter` (switching between which speed multiplier should be used for `L0`).
 
 ![plugin](screenshots/kks_stateChange.png)
 
 **Separate button (within the Clothing menu) for enabling or disabling the speed limiter.**
+
 ![plugin](screenshots/kks_ClothingMenu_limitButton.png)
