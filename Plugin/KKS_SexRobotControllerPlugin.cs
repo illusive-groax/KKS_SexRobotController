@@ -15,11 +15,19 @@ namespace KKS_SexRobotController.Plugin
     internal partial class KKS_SexRobotControllerPlugin : BaseUnityPlugin
     {
         private HFlag _hFlags;
-        private bool _hSceneEnded = false;
+        // set to true at the beginning to ensure proper state initialization
+        private bool _newHSceneStarted = true;
         private static ManualLogSource _Log;
         private static RobotMovement _robotMovement;
-        private readonly Stopwatch _sw = Stopwatch.StartNew();
-
+        private readonly Stopwatch _sw;
+        
+        private KKS_SexRobotControllerPlugin()
+        {
+            // create a stopwatch instance, but don't start it
+            _sw = Stopwatch.StartNew();
+            _sw.Reset();
+        }
+        
         private void Start()
         {
             _serialPortConnection = SerialPortConnection.GetInstance();
@@ -36,50 +44,25 @@ namespace KKS_SexRobotController.Plugin
 
         private void OnDestroy()
         {
-            _sw.Reset();
+            _sw.Stop();
             _hFlags = null;
-            _hSceneEnded = true;
             RobotMovement.GetInstance().HSceneEnding();
         }
 
-        //called only on scene load/initialization
-        internal void OnHSceneLoad(HSceneProc __instance)
-        {
-            try
-            {
-                // if previously an H-Scene was played and ended 
-                // and a new one is now being started, clear previous values
-                if (_hSceneEnded)
-                {
-                    _robotMovement.Player = null;
-                    _robotMovement.Females = null;
-                    _hSceneEnded = false;
-                }
-                if (_robotMovement.Player == null)
-                    _robotMovement.Player = __instance.male;
-                if (_robotMovement.Females == null)
-                    _robotMovement.Females = __instance.lstFemale.FindAll(female => female != null).ToArray();
-                _robotMovement.UpdatePosition = false;
-                _robotMovement.SpeedChanged = false;
-            }
-            catch (Exception e)
-            {
-                Logger.LogDebug("Error in OnHSceneLoad(): " + e.ToString());
-            }
-        }
         private void OnHSceneUpdate(HSprite _hSprite)
         {
             try
             {
                 if (_hSprite == null)
                     return;
-                // if previously an H-Scene was played and ended 
+
+                // if previously a H-Scene was played and ended 
                 // and a new one is now being started, clear previous values
-                if (_hSceneEnded)
+                if (_newHSceneStarted)
                 {
-                    _robotMovement.Player = null;
-                    _robotMovement.Females = null;
-                    _hSceneEnded = false;
+                    _sw.Restart();
+                    _newHSceneStarted = false;
+                    RobotMovement.GetInstance().HSceneEnding();
                 }
                 if (_robotMovement.Females == null && _hSprite.females != null)
                 {
@@ -186,7 +169,7 @@ namespace KKS_SexRobotController.Plugin
             OnHSceneUpdate(hFlag);
         }
 
-        //HandlePause: called before/after sex  (e.g. pos. select, initialize)
+        //HandlePause: called before/after sex (e.g. pos. select, initialize)
         internal void HandlePause(ref HSprite hSprite)
         {
             if (hSprite != null)
@@ -218,7 +201,8 @@ namespace KKS_SexRobotController.Plugin
                 if (_hFlags.isHSceneEnd)
                 {
                     // H-Scene is ending, set flag and return
-                    _hSceneEnded = true;
+                    _sw.Reset();
+                    _newHSceneStarted = true;
                     return;
                 }
 
@@ -242,10 +226,26 @@ namespace KKS_SexRobotController.Plugin
                     _sw.Restart();
                 }
             }
+            catch (NullReferenceException ex)
+            {
+                // if a NullReferenceException is thrown, it could be caused the objects weren't properly initialized
+                // or because the player returned to the title without cleanly exiting the current H-Scenee playing
+                // therefore, attempt a reload by clearing the currently set values (requires animation change/reload)
+                Logger.LogDebug("Error in Update() (NullReferenceException): " + ex.ToString());
+                Logger.LogDebug("Clearing set values by calling 'ForceHSceneReload()'. Reload or change animations for changes to take effect.");
+                ForceHSceneReload();
+            }
             catch (Exception ex)
             {
                 Logger.LogDebug("Error in Update(): " + ex.ToString());
             }
+        }
+
+        internal void ForceHSceneReload()
+        {
+            _sw.Reset();
+            _hFlags = null;
+            _newHSceneStarted = true;
         }
     }
 }

@@ -127,8 +127,14 @@ namespace KKS_SexRobotController.RobotController
         internal void HSceneEnding()
         {
             // HScene has ended, ensure the device stops moving
+            SpeedChanged = false;
             UpdatePosition = false;
             AnimationChanged = false;
+            // clear char and animation data
+            Player = null;
+            Females = null;
+            AnimationName = "";
+            NowAnimStateName = "";
             _l0MovementMultiplier = KKS_SexRobotControllerPlugin.RobotL0MovementMultiplier_Idle.Value;
             // send device home
             SendTCodeHomeCommand();
@@ -222,7 +228,6 @@ namespace KKS_SexRobotController.RobotController
                 UpdatePosition = false;
                 KKS_SexRobotControllerPlugin.LogInfo("ERROR: The current HScene doesn't have 1 male and at least 1 female.");
             }
-
         }
 
         private void UpdateMaleTransforms()
