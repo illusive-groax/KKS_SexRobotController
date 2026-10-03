@@ -5,7 +5,7 @@
         internal const string GAME_NAME = "KoikatsuSunshine";
         internal const string GAME_VR_NAME = "KoikatsuSunshine_VR";
 
-        internal const string PLUGIN_VERSION = "2.0.1";
+        internal const string PLUGIN_VERSION = "2.0.2";
         internal const string PLUGIN_NAME = "KKS_SexRobotController";
         internal const string PLUGIN_GUID = "KKSrobotics.KKSSexRobotController";
 
