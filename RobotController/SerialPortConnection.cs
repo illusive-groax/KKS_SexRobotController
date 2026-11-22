@@ -12,10 +12,17 @@ namespace KKS_SexRobotController.RobotController
 
         private static SerialPortConnection _instance;
         private static readonly object _lock = new();
+        // Logger
+        private static BepInEx.Logging.ManualLogSource _logSource;
 
         private SerialPortConnection()
         {
             SRC_SerialPort = new SerialPort();
+        }
+
+        internal void SetLogSource(BepInEx.Logging.ManualLogSource logSource)
+        {
+            _logSource = logSource;
         }
 
         internal static SerialPortConnection GetInstance()
@@ -40,7 +47,7 @@ namespace KKS_SexRobotController.RobotController
         {
 
             KKS_SexRobotControllerPlugin.SerialPortConnected.Value = false;
-            KKS_SexRobotControllerPlugin.LogInfo("Serial COM port changed to: " + KKS_SexRobotControllerPlugin.SerialPortConfig.Value + ".");
+            _logSource.LogInfo("Serial COM port changed to: " + KKS_SexRobotControllerPlugin.SerialPortConfig.Value + ".");
 
             if (SRC_SerialPort != null)
             {
@@ -51,11 +58,12 @@ namespace KKS_SexRobotController.RobotController
                         // Close the serial port connection
                         SRC_SerialPort.Close();
 
-                        KKS_SexRobotControllerPlugin.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
+                        _logSource.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
                     }
                     catch (Exception e)
                     {
-                        KKS_SexRobotControllerPlugin.LogDebug("Error: " + e.ToString() + ".");
+                        _logSource.LogDebug("Error: " + e.ToString() + ".");
+                        FileHandler.WriteToDebugLog("Error: " + e.ToString() + ".");
                     }
                 }
             }
@@ -78,15 +86,16 @@ namespace KKS_SexRobotController.RobotController
 
                         KKS_SexRobotControllerPlugin.SerialPortStatus.Value = SRC_SerialPort.PortName + " port is disconnected.";
 
-                        KKS_SexRobotControllerPlugin.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
+                        _logSource.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
                     }
                     catch (Exception e)
                     {
                         KKS_SexRobotControllerPlugin.SerialPortStatus.Value = SRC_SerialPort.PortName + " port is disconnected.";
 
-                        KKS_SexRobotControllerPlugin.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
+                        _logSource.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
 
-                        KKS_SexRobotControllerPlugin.LogDebug("Error: " + e.ToString() + ".");
+                        _logSource.LogDebug("Error: " + e.ToString() + ".");
+                        FileHandler.WriteToDebugLog("Error: " + e.ToString() + ".");
                     }
                 }
             }
@@ -108,7 +117,7 @@ namespace KKS_SexRobotController.RobotController
 
                         KKS_SexRobotControllerPlugin.SerialPortConnected.Value = true;
 
-                        KKS_SexRobotControllerPlugin.LogInfo("Connected to serial port " + SRC_SerialPort.PortName + ".");
+                        _logSource.LogInfo("Connected to serial port " + SRC_SerialPort.PortName + ".");
                     }
                     else
                     {
@@ -116,7 +125,7 @@ namespace KKS_SexRobotController.RobotController
 
                         KKS_SexRobotControllerPlugin.SerialPortConnected.Value = false;
 
-                        KKS_SexRobotControllerPlugin.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
+                        _logSource.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
                     }
                 }
                 catch (Exception e)
@@ -125,7 +134,8 @@ namespace KKS_SexRobotController.RobotController
 
                     KKS_SexRobotControllerPlugin.SerialPortConnected.Value = false;
 
-                    KKS_SexRobotControllerPlugin.LogDebug("Error: " + e.ToString() + ".");
+                    _logSource.LogDebug("Error: " + e.ToString() + ".");
+                    FileHandler.WriteToDebugLog("Error: " + e.ToString() + ".");
                 }
             }
         }
@@ -221,16 +231,17 @@ namespace KKS_SexRobotController.RobotController
 
                             Task task = UpdateDisconnectRobotButton();
 
-                            KKS_SexRobotControllerPlugin.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
+                            _logSource.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
                         }
                         catch (Exception e)
                         {
                             KKS_SexRobotControllerPlugin.SerialPortStatus.Value = SRC_SerialPort.PortName + " port is disconnected.";
                             _ = UpdateDisconnectRobotButton();
 
-                            KKS_SexRobotControllerPlugin.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
+                            _logSource.LogInfo("Serial port " + SRC_SerialPort.PortName + " has been disconnected.");
 
-                            KKS_SexRobotControllerPlugin.LogDebug("Error: " + e.ToString() + ".");
+                            _logSource.LogDebug("Error: " + e.ToString() + ".");
+                            FileHandler.WriteToDebugLog("Error: " + e.ToString() + ".");
                         }
                     }
                     else
@@ -261,7 +272,7 @@ namespace KKS_SexRobotController.RobotController
 
                             Task task = UpdateConnectRobotButton();
 
-                            KKS_SexRobotControllerPlugin.LogInfo("Connected to serial port " + SRC_SerialPort.PortName + ".");
+                            _logSource.LogInfo("Connected to serial port " + SRC_SerialPort.PortName + ".");
                         }
                         else
                         {
@@ -269,7 +280,7 @@ namespace KKS_SexRobotController.RobotController
 
                             Task task = UpdateConnectRobotButton();
 
-                            KKS_SexRobotControllerPlugin.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
+                            _logSource.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
                         }
                     }
                     catch (Exception e)
@@ -277,9 +288,10 @@ namespace KKS_SexRobotController.RobotController
                         KKS_SexRobotControllerPlugin.SerialPortStatus.Value = "Error connecting to serial port " + SRC_SerialPort.PortName + ".";
                         _ = UpdateConnectRobotButton();
 
-                        KKS_SexRobotControllerPlugin.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
+                        _logSource.LogDebug("Error connecting to serial port " + SRC_SerialPort.PortName + ".");
 
-                        KKS_SexRobotControllerPlugin.LogDebug("Error: " + e.ToString() + ".");
+                        _logSource.LogDebug("Error: " + e.ToString() + ".");
+                        FileHandler.WriteToDebugLog("Error: " + e.ToString() + ".");
                     }
                 }
             }

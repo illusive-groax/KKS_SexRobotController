@@ -9,6 +9,7 @@ namespace KKS_SexRobotController.Helpers
             /** Idle states **/
             IDLE_START,
             IDLE,
+            STOP_IDLE,
             PULL_OUT,
             DROP,
             // Oral
@@ -167,61 +168,13 @@ namespace KKS_SexRobotController.Helpers
             RIGHTHAND
         }
 
-        internal static readonly List<string> IdleStates = [
-            "",
-            "Idle",
-            "Pull",
-            "Drop",
-            "Oral_Idle",
-            "Oral_Idle_IN",
-            "InsertIdle",
-            "A_Idle",
-            "A_Insert",
-            "A_InsertIdle",
-            "A_Pull",
-            "A_Drop",
-            "A_OUT_A",
-            "IN_A",
-            "Drink_IN",
-            "OUT_A",
-            "Drink",
-            "Drink_A",
-            "Vomit",
-            "Vomit_IN",
-            "Vomit_A",
-        ];
-
-        internal static readonly List<string> ClimaxStates = [
-            "M_OUT_Start",
-            "M_OUT_Loop",
-            "IN_Start",
-            "IN_Loop",
-            "M_IN_Start",
-            "M_IN_Loop",
-            "M_IN_A",
-            "WS_IN_Start",
-            "WS_IN_Loop",
-            "WS_IN_A",
-            "SS_IN_Start",
-            "SS_IN_Loop",
-            "SS_IN_A",
-            "A_M_IN_Start",
-            "A_M_IN_Loop",
-            "A_M_IN_A",
-            "A_WS_IN_Start",
-            "A_WS_IN_Loop",
-            "A_WS_IN_A",
-            "A_SS_IN_Start",
-            "A_SS_IN_Loop",
-            "A_SS_IN_A",
-            ];
-
         // retrieved via HFlag.nowAnimStateName
         internal static readonly Dictionary<LoopSpeed, string> loopSpeedDict = new()
         {
             // idle
             {LoopSpeed.IDLE_START, ""},
             {LoopSpeed.IDLE, "Idle"},
+            {LoopSpeed.STOP_IDLE, "Stop_Idle"},
             {LoopSpeed.PULL_OUT, "Pull"},
             {LoopSpeed.DROP, "Drop"},
             {LoopSpeed.ORAL_IDLE, "Oral_Idle"},
@@ -278,6 +231,67 @@ namespace KKS_SexRobotController.Helpers
             {LoopSpeed.BOTH_AFTER_CLIMAXING_ANAL_STRONG, "A_SS_IN_A"},
             {LoopSpeed.IDLE_AFTER_CLIMAXING_ANAL, "A_IN_A"},
         };
+
+        internal static readonly List<string> IdleStates = [
+            // generic idlle
+            loopSpeedDict[LoopSpeed.IDLE_START],
+            loopSpeedDict[LoopSpeed.IDLE],
+            loopSpeedDict[LoopSpeed.STOP_IDLE],
+            // idle after pulling out
+            loopSpeedDict[LoopSpeed.PULL_OUT],
+            loopSpeedDict[LoopSpeed.DROP],
+            // oral idle
+            loopSpeedDict[LoopSpeed.ORAL_IDLE],
+            loopSpeedDict[LoopSpeed.ORAL_IDLE_IN],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN1],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN2],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_IN3],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT1],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT2],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ORAL_DRINK_OUT3],
+            // vaginal idle
+            loopSpeedDict[LoopSpeed.INSERT],
+            loopSpeedDict[LoopSpeed.INSERT_IDLE],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_OUTSIDE],
+            // anal idle
+            loopSpeedDict[LoopSpeed.ANAL_IDLE],
+            loopSpeedDict[LoopSpeed.ANAL_INSERT],
+            loopSpeedDict[LoopSpeed.ANAL_INSERT_IDLE],
+            loopSpeedDict[LoopSpeed.ANAL_PULL_OUT],
+            loopSpeedDict[LoopSpeed.ANAL_DROP],
+            loopSpeedDict[LoopSpeed.ANAL_IDLE_AFTER_CLIMAXING_OUTSIDE],
+        ];
+
+        internal static readonly List<string> ClimaxStates = [
+            // outside climax states
+            loopSpeedDict[LoopSpeed.MALE_ABOUT_TO_CLIMAX_OUTSIDE],
+            loopSpeedDict[LoopSpeed.MALE_CLIMAXING_OUTSIDE],
+            // oral climax states
+            loopSpeedDict[LoopSpeed.MALE_ABOUT_TO_CLIMAX_ORAL],
+            loopSpeedDict[LoopSpeed.MALE_CLIMAXING_ORAL],
+            // insertion climax states
+            loopSpeedDict[LoopSpeed.MALE_ABOUT_TO_CLIMAX_VAGINAL],
+            loopSpeedDict[LoopSpeed.MALE_CLIMAXING_VAGINAL],
+            loopSpeedDict[LoopSpeed.MALE_AFTER_CLIMAXING_VAGINAL],
+            loopSpeedDict[LoopSpeed.BOTH_ABOUT_TO_CLIMAX_VAGINAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_CLIMAXING_VAGINAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_AFTER_CLIMAXING_VAGINAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_ABOUT_TO_CLIMAX_VAGINAL_STRONG],
+            loopSpeedDict[LoopSpeed.BOTH_CLIMAXING_VAGINAL_STRONG],
+            loopSpeedDict[LoopSpeed.BOTH_AFTER_CLIMAXING_VAGINAL_STRONG],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_VAGINAL],
+            // anal climax states
+            loopSpeedDict[LoopSpeed.MALE_ABOUT_TO_CLIMAX_ANAL],
+            loopSpeedDict[LoopSpeed.MALE_CLIMAXING_ANAL],
+            loopSpeedDict[LoopSpeed.MALE_AFTER_CLIMAXING_ANAL],
+            loopSpeedDict[LoopSpeed.BOTH_ABOUT_TO_CLIMAX_ANAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_CLIMAXING_ANAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_AFTER_CLIMAXING_ANAL_WEAK],
+            loopSpeedDict[LoopSpeed.BOTH_ABOUT_TO_CLIMAX_ANAL_STRONG],
+            loopSpeedDict[LoopSpeed.BOTH_CLIMAXING_ANAL_STRONG],
+            loopSpeedDict[LoopSpeed.BOTH_AFTER_CLIMAXING_ANAL_STRONG],
+            loopSpeedDict[LoopSpeed.IDLE_AFTER_CLIMAXING_ANAL],
+            ];
 
         internal static readonly Dictionary<BodyBone, string> bodyBoneDictionary = new()
         {

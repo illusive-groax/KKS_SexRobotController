@@ -14,9 +14,16 @@ namespace KKS_SexRobotController.Plugin
         internal static ConfigEntry<bool> SerialPortConnected { get; set; }
         internal static ConfigEntry<KeyboardShortcut> ToggleSerialPortConnection { get; set; }
         internal static ConfigEntry<float> SexRobotUpdateFrequencyConfig { get; set; }
-        internal static ConfigEntry<bool> DiagnosticsConfig { get; set; }
+        internal static ConfigEntry<bool> DiagnosticsConfigTerminal { get; set; }
+        internal static ConfigEntry<bool> DiagnosticsConfigLogfile { get; set; }
         internal static ConfigEntry<bool> ReadAnimationsFromFile { get; set; }
         internal static ConfigEntry<bool> WriteAnimationsToFile { get; set; }
+        //TODO
+        internal static ConfigEntry<bool> RobotR0TwistMultiplierEnable { get; set; }
+        internal static ConfigEntry<bool> RobotA0SuckMultiplierEnable { get; set; }
+        internal static ConfigEntry<bool> RobotA0SuckMultiplierInvert { get; set; }
+        internal static ConfigEntry<float> RobotR0MovementMultiplier { get; set; }
+        // min/max for the axes
         internal static ConfigEntry<float> RobotL0Min { get; set; }
         internal static ConfigEntry<float> RobotL0Max { get; set; }
         internal static ConfigEntry<float> RobotL1Min { get; set; }
@@ -29,6 +36,8 @@ namespace KKS_SexRobotController.Plugin
         internal static ConfigEntry<float> RobotR1Max { get; set; }
         internal static ConfigEntry<float> RobotR2Min { get; set; }
         internal static ConfigEntry<float> RobotR2Max { get; set; }
+        internal static ConfigEntry<float> RobotA0Min { get; set; }
+        internal static ConfigEntry<float> RobotA0Max { get; set; }
         // multiplier for idle
         internal static ConfigEntry<float> RobotL0MovementMultiplier_Idle { get; set; }
         internal static ConfigEntry<float> RobotL0MovementMultiplier_Climax { get; set; }
@@ -54,8 +63,9 @@ namespace KKS_SexRobotController.Plugin
         internal static bool GuiButtonCreated = false;
 
         private static SerialPortConnection _serialPortConnection;
-        
+
         private const float DefaultStrokeLength = 1.0f;
+        private const float DefaultTwistLength = 1.0f; // Recommendation: 0.5 or lower for "softer" movement
 
         private void SetupPluginConfigurations()
         {
@@ -63,7 +73,8 @@ namespace KKS_SexRobotController.Plugin
             // Setup config file entries used in the in game menu
             // Creates a config file in BepInEx/config named KKSrobotics.KKSSexRobotController.cfg
             // general
-            DiagnosticsConfig = Config.Bind(StringConstants.SexRobotGeneralSection, StringConstants.BepinExDebugOutput, false);
+            DiagnosticsConfigTerminal = Config.Bind(StringConstants.SexRobotGeneralSection, StringConstants.BepinExDebugOutput, false);
+            DiagnosticsConfigLogfile = Config.Bind(StringConstants.SexRobotGeneralSection, StringConstants.BepinExDebugToLog, false, new ConfigDescription(StringConstants.BepinExDebugToLog_Tooltip));
             ReadAnimationsFromFile = Config.Bind(StringConstants.SexRobotGeneralSection, StringConstants.ReadAnimationsFromFile, false, new ConfigDescription(StringConstants.ReadAnimationsFromFile_Tooltip));
             WriteAnimationsToFile = Config.Bind(StringConstants.SexRobotGeneralSection, StringConstants.WriteNotFoundPositionsToFile, false, new ConfigDescription(StringConstants.WriteNotFoundPositionsToFile_Tooltip));
             // connection
@@ -79,6 +90,13 @@ namespace KKS_SexRobotController.Plugin
             {
                 _serialPortConnection.UpdateSerialPortConnection();
             };
+            /** WIP: Twist (R0) & Suck (A0) **/
+            RobotR0TwistMultiplierEnable = Config.Bind(StringConstants.SexRobotSuckAndTwistSection, StringConstants.RobotR0TwistMultiplierEnable, false, new ConfigDescription(StringConstants.RobotR0TwistMultiplierEnable_Tooltip));
+            RobotR0MovementMultiplier = Config.Bind(StringConstants.SexRobotSuckAndTwistSection, StringConstants.RobotR0Multiplier, DefaultTwistLength,
+                new ConfigDescription(StringConstants.RobotR0TwistMultiplierEnable_Tooltip, new AcceptableValueRange<float>(RobotMovement.R0_MOVEMENT_MULTIPLIER_MIN, RobotMovement.R0_MOVEMENT_MULTIPLIER_MAX)));
+            RobotA0SuckMultiplierEnable = Config.Bind(StringConstants.SexRobotSuckAndTwistSection, StringConstants.RobotA0SuckMultiplierEnable, false, new ConfigDescription(StringConstants.RobotA0SuckMultiplierEnable_Tooltip));
+            RobotA0SuckMultiplierInvert = Config.Bind(StringConstants.SexRobotSuckAndTwistSection, StringConstants.RobotA0SuckMultiplierInvert, false, new ConfigDescription(StringConstants.RobotA0SuckMultiplierInvert_Tooltip));
+
             // L0: Idle
             RobotL0MovementMultiplier_Idle = Config.Bind(StringConstants.SexRobotL0IdleClimaxSection, StringConstants.RobotL0MovementMultiplierIdle, DefaultStrokeLength,
                 new ConfigDescription(StringConstants.RobotL0MovementMultiplier_Tooltip, new AcceptableValueRange<float>(RobotMovement.L0_MOVEMENT_MULTIPLIER_MIN, RobotMovement.L0_MOVEMENT_MULTIPLIER_MAX)));
@@ -111,6 +129,8 @@ namespace KKS_SexRobotController.Plugin
             RobotR1Max = Config.Bind(StringConstants.SexRobotMinMaxSection, StringConstants.RobotR1Max, 1.0f, new ConfigDescription(StringConstants.RobotR1Max_Tooltip, new AcceptableValueRange<float>(0.5f, 1.0f)));
             RobotR2Min = Config.Bind(StringConstants.SexRobotMinMaxSection, StringConstants.RobotR2Min, 0.0f, new ConfigDescription(StringConstants.RobotR2Min_Tooltip, new AcceptableValueRange<float>(0.0f, 0.5f)));
             RobotR2Max = Config.Bind(StringConstants.SexRobotMinMaxSection, StringConstants.RobotR2Max, 1.0f, new ConfigDescription(StringConstants.RobotR2Max_Tooltip, new AcceptableValueRange<float>(0.5f, 1.0f)));
+            RobotA0Min = Config.Bind(StringConstants.SexRobotMinMaxSection, StringConstants.RobotA0Min, 0.0f, new ConfigDescription(StringConstants.RobotA0Min_Tooltip, new AcceptableValueRange<float>(0.0f, 0.5f)));
+            RobotA0Max = Config.Bind(StringConstants.SexRobotMinMaxSection, StringConstants.RobotA0Max, 1.0f, new ConfigDescription(StringConstants.RobotA0Max_Tooltip, new AcceptableValueRange<float>(0.5f, 1.0f)));
 
             if (SerialPortConnected.Value)
             {

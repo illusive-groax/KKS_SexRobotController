@@ -10,6 +10,8 @@ namespace KKS_SexRobotController.RobotController
     {
         internal const float L0_MOVEMENT_MULTIPLIER_MIN = 0.25f;
         internal const float L0_MOVEMENT_MULTIPLIER_MAX = 5.0f;
+        internal const float R0_MOVEMENT_MULTIPLIER_MIN = 0.25f;
+        internal const float R0_MOVEMENT_MULTIPLIER_MAX = 1.5f;
 
         internal ChaControl Player { get; set; }
         internal ChaControl[] Females { get; set; }
@@ -20,12 +22,15 @@ namespace KKS_SexRobotController.RobotController
         internal string NowAnimStateName { get; set; }
         // is the current animation a Service or Insertion type of animation?
         internal bool AnimationIsInsertion { get; set; }
-
-        private float _l0MovementMultiplier;
+        // Logger
+        private static BepInEx.Logging.ManualLogSource _logSource;
 
         private float _autoRangeMin;
         private float _autoRangeMid;
         private float _autoRangeMax;
+        private float _l0MovementMultiplier;
+        private bool _enableR0_ExtraTwist = false;
+        private bool _enableA0_Suck = false;
 
         private Transform _malePenisBase;
         private Transform _malePenisTip;
@@ -70,6 +75,11 @@ namespace KKS_SexRobotController.RobotController
             _serialPortConnection = SerialPortConnection.GetInstance();
         }
 
+        internal void SetLogSource(BepInEx.Logging.ManualLogSource logSource)
+        {
+            _logSource = logSource;
+        }
+
         internal static RobotMovement GetInstance()
         {
             // prevent threads stumbling over the lock once the instance is ready.
@@ -110,12 +120,13 @@ namespace KKS_SexRobotController.RobotController
                 }
                 try
                 {
-                    UpdateL0MultiplierValues();
+                    UpdateMultiplierValues();
                     UpdateRobotPosition();
                 }
-                catch (Exception ex)
+                catch (Exception e)
                 {
-                    KKS_SexRobotControllerPlugin.LogInfo("Error occurred upon position update: " + ex.ToString());
+                    _logSource.LogInfo("Error occurred upon position update: " + e.ToString());
+                    FileHandler.WriteToDebugLog("Error occurred upon position update: " + e.ToString());
                 }
             }
             else
@@ -140,14 +151,22 @@ namespace KKS_SexRobotController.RobotController
             SendTCodeHomeCommand();
         }
 
-        private void UpdateL0MultiplierValues()
+        private void UpdateMultiplierValues()
         {
+            _enableA0_Suck = KKS_SexRobotControllerPlugin.RobotA0SuckMultiplierEnable.Value;
+            _enableR0_ExtraTwist = KKS_SexRobotControllerPlugin.RobotR0TwistMultiplierEnable.Value;
             if (NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.INSERT]
                 || NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.WEAK]
                || NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.ANAL_WEAK])
             {
                 _l0MovementMultiplier = AnimationIsInsertion ? KKS_SexRobotControllerPlugin.RobotL0MovementMultiplierPenetration_Weak.Value
                     : KKS_SexRobotControllerPlugin.RobotL0MovementMultiplierService_Weak.Value;
+                if (NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.INSERT])
+                {
+                    // INSERT falls under IDLE, therefore disable the additional twist and suck
+                    _enableA0_Suck = false;
+                    _enableR0_ExtraTwist = false;
+                }
             }
             else if (NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.ORGASM]
                 || NowAnimStateName == BoneAnimationDefiner.loopSpeedDict[BoneAnimationDefiner.LoopSpeed.ANAL_ORGASM])
@@ -164,14 +183,28 @@ namespace KKS_SexRobotController.RobotController
             }
             else if (BoneAnimationDefiner.ClimaxStates.Contains(NowAnimStateName))
             {
+                // disable the the additional twist and suck for idle and orgasm animations
+                _enableA0_Suck = false;
+                _enableR0_ExtraTwist = false;
                 _l0MovementMultiplier = KKS_SexRobotControllerPlugin.RobotL0MovementMultiplier_Climax.Value;
             }
             else
             {
+                // disable the the additional twist and suck for idle and orgasm animations
+                _enableA0_Suck = false;
+                _enableR0_ExtraTwist = false;
                 _l0MovementMultiplier = KKS_SexRobotControllerPlugin.RobotL0MovementMultiplier_Idle.Value;
                 // account for unknown/missed looptypes
                 if (!BoneAnimationDefiner.loopSpeedDict.ContainsValue(NowAnimStateName))
-                    KKS_SexRobotControllerPlugin.LogDebug("Animation: '" + AnimationName + "' - NowAnimStateName (not found): '" + NowAnimStateName + "'.");
+                    _logSource.LogDebug("Animation: '" + AnimationName + "' - NowAnimStateName (not found): '" + NowAnimStateName + "'.");
+            }
+
+            // is the Suck (A0) enabled?
+            if (_enableA0_Suck)
+            {
+                // limit sucking to insertion animations
+                _enableA0_Suck = (AnimationIsInsertion || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ORAL
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ORALSWAP);
             }
         }
 
@@ -179,11 +212,15 @@ namespace KKS_SexRobotController.RobotController
         {
             int girlIndex = 0;
 
-
-            if (KKS_SexRobotControllerPlugin.DiagnosticsConfig.Value)
+            if (KKS_SexRobotControllerPlugin.DiagnosticsConfigTerminal.Value)
             {
-                KKS_SexRobotControllerPlugin.LogInfo("Animation: " + AnimationName);
-                KKS_SexRobotControllerPlugin.LogInfo("Females found: " + Females.Length.ToString());
+                _logSource.LogInfo("Animation: " + AnimationName);
+                _logSource.LogInfo("Females found: " + Females.Length.ToString());
+            }
+            if (KKS_SexRobotControllerPlugin.DiagnosticsConfigLogfile.Value)
+            {
+                FileHandler.WriteToDebugLog("Animation: " + AnimationName);
+                FileHandler.WriteToDebugLog("Females found: " + Females.Length.ToString());
             }
 
             if (Player != null && Females.Length > 0)
@@ -194,16 +231,18 @@ namespace KKS_SexRobotController.RobotController
                 BoneAnimationDefiner.animationFemaleTargetDictionary.TryGetValue(AnimationName, out BoneAnimationDefiner.FemaleTargetType femaleTargetTypeCurrent);
                 _currentFemaleTargetType = femaleTargetTypeCurrent;
 
-                if (_currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.VAGINAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ANAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ORAL
-                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BREASTS || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTHAND || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTHAND
-                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.INTERCRURAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTFOOT || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTFOOT
-                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BOTH_FEET)
+                if (_currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.VAGINAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ANAL
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ORAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BREASTS
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTHAND || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTHAND
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.INTERCRURAL || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTFOOT
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTFOOT || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BOTH_FEET)
                 {
                     UpdateFemaleTransforms(girlIndex);
                 }
                 else if (_currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.VAGINALSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.ORALSWAP
-                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BREASTSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTHANDSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTHANDSWAP
-                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.INTERCRURALSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTFOOTSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTFOOTSWAP)
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.BREASTSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTHANDSWAP
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTHANDSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.INTERCRURALSWAP
+                    || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.LEFTFOOTSWAP || _currentFemaleTargetType == BoneAnimationDefiner.FemaleTargetType.RIGHTFOOTSWAP)
                 {
                     if (Females.Length == 2)
                     {
@@ -212,12 +251,12 @@ namespace KKS_SexRobotController.RobotController
                     }
                     else
                     {
-                        KKS_SexRobotControllerPlugin.LogInfo("ERROR: The current HScene (swap) doesn't have 2 Females.");
+                        _logSource.LogInfo("ERROR: The current HScene (swap) doesn't have 2 Females.");
                     }
                 }
-                if (KKS_SexRobotControllerPlugin.DiagnosticsConfig.Value)
+                if (KKS_SexRobotControllerPlugin.DiagnosticsConfigTerminal.Value)
                 {
-                    KKS_SexRobotControllerPlugin.LogInfo("Current animation: " + AnimationName);
+                    _logSource.LogInfo("Current animation: " + AnimationName);
                 }
 
                 AnimationChanged = false;
@@ -226,7 +265,7 @@ namespace KKS_SexRobotController.RobotController
             else
             {
                 UpdatePosition = false;
-                KKS_SexRobotControllerPlugin.LogInfo("ERROR: The current HScene doesn't have 1 male and at least 1 female.");
+                _logSource.LogInfo("ERROR: The current HScene doesn't have 1 male and at least 1 female.");
             }
         }
 
@@ -346,6 +385,9 @@ namespace KKS_SexRobotController.RobotController
 
                 GetFemaleTargetPosition(out Vector3 femaleTargetXAxis, out Vector3 femaleTargetZAxis, out Vector3 femaleTargetToMalePenisBase);
 
+                // Suck mechanism
+                float robotA0 = 0.0f;
+
                 // Calculate X(L0) for robot based on the reference X axis and the vector from the female's vagina's labia trigger to the male's penis's base collider
                 float robotL0 = Vector3.Dot(malePenisXAxis, femaleTargetToMalePenisBase) / (malePenisXAxis.magnitude * malePenisXAxis.magnitude);
 
@@ -401,10 +443,28 @@ namespace KKS_SexRobotController.RobotController
                 // Get the automatic range midpoint
                 _autoRangeMid = (_autoRangeMin + _autoRangeMax) / 2.0f;
 
-                float multiplier = _l0MovementMultiplier;
+                // if the additional Twist option is enabled, then re-calculate R0
+                if (_enableR0_ExtraTwist)
+                {
+                    // use L0 (Stroke) as movement modifier and multiply the value
+                    // need the raw value of L0, therefore calculate R0 before modifying speed
+                    robotR0 = 0.5f + (robotL0 - _autoRangeMid) + robotR0Angle / 180.0f;
+                    // going below 0.25f results in little to no movement, with 2.0f it rotates only once
+                    // therefore the "sweet spot" is roughly 0.5f - 1.5f (pending how much movement one wants)
+                    robotR0 *= KKS_SexRobotControllerPlugin.RobotR0MovementMultiplier.Value;
+                }
 
                 // Caclulate modified robotL0
-                robotL0 = 0.5f + (robotL0 - _autoRangeMid) * multiplier;
+                robotL0 = 0.5f + (robotL0 - _autoRangeMid) * _l0MovementMultiplier;
+
+                // since Suck is 1:1 with L0, it's set after calculating modified L0
+                if (_enableA0_Suck)
+                {
+                    robotA0 = robotL0;
+                    // inversion: value range is 0->1, so, subtract the difference
+                    if (KKS_SexRobotControllerPlugin.RobotA0SuckMultiplierInvert.Value)
+                        robotA0 = 1 - robotA0;
+                }
 
                 // Formulate T-Code command string
                 string command = "L0" + GenerateTCode(robotL0, KKS_SexRobotControllerPlugin.RobotL0Min.Value, KKS_SexRobotControllerPlugin.RobotL0Max.Value) + "\n";
@@ -412,41 +472,59 @@ namespace KKS_SexRobotController.RobotController
                 command += "L2" + GenerateTCode(robotL2, KKS_SexRobotControllerPlugin.RobotL2Min.Value, KKS_SexRobotControllerPlugin.RobotL2Max.Value) + "\n";
                 command += "R0" + GenerateTCode(robotR0, KKS_SexRobotControllerPlugin.RobotR0Min.Value, KKS_SexRobotControllerPlugin.RobotR0Max.Value) + "\n";
                 command += "R1" + GenerateTCode(robotR1, KKS_SexRobotControllerPlugin.RobotR1Min.Value, KKS_SexRobotControllerPlugin.RobotR1Max.Value) + "\n";
-                command += "R2" + GenerateTCode(robotR2, KKS_SexRobotControllerPlugin.RobotR2Min.Value, KKS_SexRobotControllerPlugin.RobotR2Max.Value);
+                command += "R2" + GenerateTCode(robotR2, KKS_SexRobotControllerPlugin.RobotR2Min.Value, KKS_SexRobotControllerPlugin.RobotR2Max.Value) + "\n";
+                command += "A0" + GenerateTCode(robotA0, KKS_SexRobotControllerPlugin.RobotA0Min.Value, KKS_SexRobotControllerPlugin.RobotA0Max.Value);
 
-                if (KKS_SexRobotControllerPlugin.DiagnosticsConfig.Value)
+                // debugging
+                if (KKS_SexRobotControllerPlugin.DiagnosticsConfigTerminal.Value
+                    || KKS_SexRobotControllerPlugin.DiagnosticsConfigTerminal.Value)
                 {
-                    KKS_SexRobotControllerPlugin.LogInfo("_malePenisBase: " + _malePenisBase.position.x.ToString() + ", " + _malePenisBase.position.y.ToString() + ", " + _malePenisBase.position.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("_malePenisTip: " + _malePenisTip.position.x.ToString() + ", " + _malePenisTip.position.y.ToString() + ", " + _malePenisTip.position.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("_malePenisLeftBall: " + _malePenisLeftBall.position.x.ToString() + ", " + _malePenisLeftBall.position.y.ToString() + ", " + _malePenisLeftBall.position.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("_malePenisRightBall: " + _malePenisRightBall.position.x.ToString() + ", " + _malePenisRightBall.position.y.ToString() + ", " + _malePenisRightBall.position.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("malePenisBallsCenterPoint: " + malePenisBallsCenterPoint.x.ToString() + ", " + malePenisBallsCenterPoint.y.ToString() + ", " + malePenisBallsCenterPoint.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("malePenisLength: " + malePenisLength.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("malePenisXAxis: " + malePenisXAxis.x.ToString() + ", " + malePenisXAxis.y.ToString() + ", " + malePenisXAxis.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("malePenisZAxis: " + malePenisZAxis.x.ToString() + ", " + malePenisZAxis.y.ToString() + ", " + malePenisZAxis.z.ToString());
-                    KKS_SexRobotControllerPlugin.LogInfo("malePenisYAxis: " + malePenisYAxis.x.ToString() + ", " + malePenisYAxis.y.ToString() + ", " + malePenisYAxis.z.ToString());
-                    //debugging test
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot L0 Multiplier (actual): " + multiplier);
-                    KKS_SexRobotControllerPlugin.LogInfo("AnimationName: " + AnimationName);
-                    KKS_SexRobotControllerPlugin.LogInfo("NowAnimStateName: " + NowAnimStateName);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot L0: " + robotL0);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot L1: " + robotL1);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot L2: " + robotL2);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R0: " + robotR0);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R1: " + robotR1);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R2: " + robotR2);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R0 Angle: " + robotR0Angle);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R1 Angle: " + robotR1Angle);
-                    KKS_SexRobotControllerPlugin.LogInfo("Robot R2 Angle: " + robotR2Angle);
-                    KKS_SexRobotControllerPlugin.LogInfo("_autoRangeMin: " + _autoRangeMin);
-                    KKS_SexRobotControllerPlugin.LogInfo("_autoRangeMid: " + _autoRangeMid);
-                    KKS_SexRobotControllerPlugin.LogInfo("_autoRangeMax: " + _autoRangeMax);
-                    KKS_SexRobotControllerPlugin.LogInfo("T-Code Command: \n" + command);
+                    string debug = "Robot L0 Multiplier (actual): " + _l0MovementMultiplier;
+                    debug += "\nAnimationName: " + AnimationName;
+                    debug += "\nNowAnimStateName: " + NowAnimStateName;
+                    debug += "\nRobot L0: " + robotL0;
+                    debug += "\nRobot L1: " + robotL1;
+                    debug += "\nRobot L2: " + robotL2;
+                    debug += "\nRobot R0: " + robotR0;
+                    debug += "\nRobot R1: " + robotR1;
+                    debug += "\nRobot R2: " + robotR2;
+                    debug += "\nRobot A0: " + robotA0;
+                    debug += "\nRobot R0 Angle: " + robotR0Angle;
+                    debug += "\nRobot R1 Angle: " + robotR1Angle;
+                    debug += "\nRobot R2 Angle: " + robotR2Angle;
+                    debug += "\n_autoRangeMin: " + _autoRangeMin;
+                    debug += "\n_autoRangeMid: " + _autoRangeMid;
+                    debug += "\n_autoRangeMax: " + _autoRangeMax;
+                    PrintDebuggingInfo(malePenisBallsCenterPoint, malePenisLength, malePenisXAxis, malePenisZAxis, malePenisYAxis, debug, command);
                 }
 
                 // Only update the sex robot's position/servos
                 if (robotL0 >= 0.0f && robotL0 <= 1.0f)
                     SendTCodeCommand(command);
+            }
+        }
+
+        private void PrintDebuggingInfo(Vector3 malePenisBallsCenterPoint, float malePenisLength, Vector3 malePenisXAxis, Vector3 malePenisZAxis, Vector3 malePenisYAxis,
+            string debug, string command)
+        {
+            if (KKS_SexRobotControllerPlugin.DiagnosticsConfigTerminal.Value)
+            {
+                _logSource.LogInfo(debug);
+            }
+            if (KKS_SexRobotControllerPlugin.DiagnosticsConfigLogfile.Value)
+            {
+                FileHandler.WriteToDebugLog("_malePenisBase: " + _malePenisBase.position.x.ToString() + ", " + _malePenisBase.position.y.ToString() + ", " + _malePenisBase.position.z.ToString());
+                FileHandler.WriteToDebugLog("_malePenisTip: " + _malePenisTip.position.x.ToString() + ", " + _malePenisTip.position.y.ToString() + ", " + _malePenisTip.position.z.ToString());
+                FileHandler.WriteToDebugLog("_malePenisLeftBall: " + _malePenisLeftBall.position.x.ToString() + ", " + _malePenisLeftBall.position.y.ToString() + ", " + _malePenisLeftBall.position.z.ToString());
+                FileHandler.WriteToDebugLog("_malePenisRightBall: " + _malePenisRightBall.position.x.ToString() + ", " + _malePenisRightBall.position.y.ToString() + ", " + _malePenisRightBall.position.z.ToString());
+                FileHandler.WriteToDebugLog("malePenisBallsCenterPoint: " + malePenisBallsCenterPoint.x.ToString() + ", " + malePenisBallsCenterPoint.y.ToString() + ", " + malePenisBallsCenterPoint.z.ToString());
+                FileHandler.WriteToDebugLog("malePenisLength: " + malePenisLength.ToString());
+                FileHandler.WriteToDebugLog("malePenisXAxis: " + malePenisXAxis.x.ToString() + ", " + malePenisXAxis.y.ToString() + ", " + malePenisXAxis.z.ToString());
+                FileHandler.WriteToDebugLog("malePenisZAxis: " + malePenisZAxis.x.ToString() + ", " + malePenisZAxis.y.ToString() + ", " + malePenisZAxis.z.ToString());
+                FileHandler.WriteToDebugLog("malePenisYAxis: " + malePenisYAxis.x.ToString() + ", " + malePenisYAxis.y.ToString() + ", " + malePenisYAxis.z.ToString());
+                //debugging test
+                FileHandler.WriteToDebugLog(debug);
+                FileHandler.WriteToDebugLog("T-Code Command: \n" + command);
             }
         }
 
@@ -621,7 +699,8 @@ namespace KKS_SexRobotController.RobotController
             "L25000\n" +
             "R05000\n" +
             "R15000\n" +
-            "R25000";
+            "R25000\n" +
+            "A05000";
             SendTCodeCommand(command);
         }
 
@@ -641,7 +720,8 @@ namespace KKS_SexRobotController.RobotController
             }
             catch (Exception e)
             {
-                KKS_SexRobotControllerPlugin.LogInfo("Error: " + e.ToString());
+                _logSource.LogInfo("Error: " + e.ToString());
+                FileHandler.WriteToDebugLog("Error: " + e.ToString());
             }
         }
     }

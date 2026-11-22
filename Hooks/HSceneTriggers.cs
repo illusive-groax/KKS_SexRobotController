@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using KKS_SexRobotController.Helpers;
 using KKS_SexRobotController.Plugin;
-using KKS_SexRobotController.RobotController;
 using System;
 using TMPro;
 using UnityEngine;
@@ -69,6 +68,7 @@ namespace KKS_SexRobotController.Hooks
                 catch (Exception e)
                 {
                     KKS_SexRobotControllerPlugin.LogDebug("Error upon creating Settings Button: " + e.ToString());
+                    FileHandler.WriteToDebugLog("Error upon creating Settings Button: " + e.ToString());
                 }
             }
         }

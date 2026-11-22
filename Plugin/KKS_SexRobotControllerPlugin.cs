@@ -20,14 +20,14 @@ namespace KKS_SexRobotController.Plugin
         private static ManualLogSource _Log;
         private static RobotMovement _robotMovement;
         private readonly Stopwatch _sw;
-        
+
         private KKS_SexRobotControllerPlugin()
         {
             // create a stopwatch instance, but don't start it
             _sw = Stopwatch.StartNew();
             _sw.Reset();
         }
-        
+
         private void Start()
         {
             _serialPortConnection = SerialPortConnection.GetInstance();
@@ -39,6 +39,10 @@ namespace KKS_SexRobotController.Plugin
         private void Awake()
         {
             _Log = base.Logger;
+            _serialPortConnection = SerialPortConnection.GetInstance();
+            _serialPortConnection.SetLogSource(_Log);
+            _robotMovement = RobotMovement.GetInstance();
+            _robotMovement.SetLogSource(_Log);
             SetupPluginConfigurations();
         }
 
@@ -72,7 +76,8 @@ namespace KKS_SexRobotController.Plugin
             }
             catch (Exception e)
             {
-                Logger.LogDebug("Error in OnHSceneUpdate(): " + e.ToString());
+                _Log.LogDebug("Error in OnHSceneUpdate(): " + e.ToString());
+                FileHandler.WriteToDebugLog("Error in OnHSceneUpdate(): " + e.ToString());
             }
         }
 
@@ -123,7 +128,8 @@ namespace KKS_SexRobotController.Plugin
                         }
                         catch (Exception e)
                         {
-                            Logger.LogDebug("Error updating Animation dictionary: " + e.ToString());
+                            _Log.LogDebug("Error updating Animation dictionary: " + e.ToString());
+                            FileHandler.WriteToDebugLog("Error updating Animation dictionary: " + e.ToString());
 
                         }
                         FileIsRead = true;
@@ -137,7 +143,8 @@ namespace KKS_SexRobotController.Plugin
             }
             catch (Exception e)
             {
-                Logger.LogDebug("Error in OnHSceneUpdate(): " + e.ToString());
+                _Log.LogDebug("Error in OnHSceneUpdate(): " + e.ToString());
+                FileHandler.WriteToDebugLog("Error in OnHSceneUpdate(): " + e.ToString());
             }
         }
 
@@ -151,8 +158,8 @@ namespace KKS_SexRobotController.Plugin
                 !BoneAnimationDefiner.animationFemaleTargetDictionary.ContainsKey(_robotMovement.AnimationName))
             {
                 // set previous to the current to avoid multiple rewrites on current animation refresh
-                FileHandler.WriteToFile(_robotMovement.AnimationName);
-                LogInfo("The animation name '" + _robotMovement.AnimationName + "' was written to file!");
+                FileHandler.WriteUnknownAnimationsToFile(_robotMovement.AnimationName);
+                _Log.LogInfo("The animation name '" + _robotMovement.AnimationName + "' was written to file!");
             }
         }
 
@@ -174,11 +181,6 @@ namespace KKS_SexRobotController.Plugin
         {
             if (hSprite != null)
                 OnHSceneUpdate(hSprite);
-        }
-
-        internal static void LogInfo(string log)
-        {
-            _Log.LogInfo(log);
         }
 
         internal static void LogDebug(string log)
@@ -231,13 +233,14 @@ namespace KKS_SexRobotController.Plugin
                 // if a NullReferenceException is thrown, it could be caused the objects weren't properly initialized
                 // or because the player returned to the title without cleanly exiting the current H-Scenee playing
                 // therefore, attempt a reload by clearing the currently set values (requires animation change/reload)
-                Logger.LogDebug("Error in Update() (NullReferenceException): " + ex.ToString());
-                Logger.LogDebug("Clearing set values by calling 'ForceHSceneReload()'. Reload or change animations for changes to take effect.");
+                _Log.LogDebug("Error in Update() (NullReferenceException): " + ex.ToString());
+                _Log.LogDebug("Clearing set values by calling 'ForceHSceneReload()'. Reload or change animations for changes to take effect.");
                 ForceHSceneReload();
             }
             catch (Exception ex)
             {
-                Logger.LogDebug("Error in Update(): " + ex.ToString());
+                _Log.LogDebug("Error in Update(): " + ex.ToString());
+                FileHandler.WriteToDebugLog("Error in Update(): " + ex.ToString());
             }
         }
 
